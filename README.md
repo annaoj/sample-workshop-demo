@@ -1,6 +1,6 @@
 # sample-workshop-demo 
 
-For detailed steps, Please follow Lab 2
+For detailed steps follow Lab 2
 
 ## Local Environment Setup
 
