@@ -5,4 +5,4 @@
 //   - AmazonPollyReadOnlyAccess
 
 export const cognitoIdentityPoolId = 'XXXX'; // 👈 replace this value with your cognito identity pool Id!
-export const sagemakerEndPoint =  'XXXX'; // 👈 replace this value for sagemaker endpoint!
+export const apiGatewayEndpoint =  'XXXX'; // 👈 replace this value for api gateway endpoint!

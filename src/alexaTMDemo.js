@@ -1,22 +1,16 @@
-import {
-  SageMakerRuntimeClient,
-  InvokeEndpointCommand,
-} from "@aws-sdk/client-sagemaker-runtime";
-import { CognitoIdentityClient } from "@aws-sdk/client-cognito-identity";
-import { fromCognitoIdentityPool } from "@aws-sdk/credential-provider-cognito-identity";
 import { HostObject } from "@amazon-sumerian-hosts/babylon";
 import { Scene } from "@babylonjs/core/scene";
 import DemoUtils from "./demo-utils";
-import { cognitoIdentityPoolId, sagemakerEndPoint } from "./demo-credentials.js";
+import { cognitoIdentityPoolId, apiGatewayEndpoint } from "./demo-credentials.js";
+import axios from 'axios';
 const LanguageDetect = require('languagedetect');
 const lngDetector = new LanguageDetect();
 
 let host;
-let sageMakerClient;
 let scene;
 let trimResponse = false;
 let userInput;
-let typeOfInputRequest="Welcom to sentence completeion mode";
+let typeOfInputRequest="Welcome to sentence completeion mode";
 
 async function createScene() {
   // Create an empty scene. Note: Sumerian Hosts work with both
@@ -32,16 +26,6 @@ async function createScene() {
   AWS.config.region = region;
   AWS.config.credentials = new AWS.CognitoIdentityCredentials({
     IdentityPoolId: cognitoIdentityPoolId,
-  });
-
-  // ===== Create SageMaker client using AWS SDK for JavaScript v3 =====
-
-  sageMakerClient = new SageMakerRuntimeClient({
-    region,
-    credentials: fromCognitoIdentityPool({
-      client: new CognitoIdentityClient({ region }),
-      identityPoolId: cognitoIdentityPoolId,
-    }),
   });
 
   // ===== Instantiate the Sumerian Host =====
@@ -74,7 +58,6 @@ function initUi() {
   document.getElementById("speakButton").onclick = speak.bind(this);
 }
 
-
 async function speak() {
   const textInput = document.getElementById("speechText").value;
   let isEnglish = false;
@@ -95,10 +78,6 @@ if (withBrackets(textInput)){
 
   const trainInp = "name[The Punter], food[Indian], priceRange[cheap]";
   const trainOut = "The Punter provides Indian food in the cheap price range.";
-  
-  // "name[Loch Fyne], food[French], customer rating[high], area[riverside], near[The Rice Boat]";
-  // "For luxurious French food, the Loch Fyne is located by the river next to The Rice Boat."
-  // link to test examples: https://huggingface.co/datasets/e2e_nlg
 
   userInput = `[CLM] ${trainInp} ==> sentence describing the place: ${trainOut} ; ${textInput} ==> sentence describing the place:`;
   console.log(`Model input: ${userInput}\n`);
@@ -124,30 +103,19 @@ if (!withBrackets(textInput) && isEnglish){
   userInput=textInput;
 }
 
-  // Create the request params.
-  var params = {
-    EndpointName: sagemakerEndPoint, 
-    Body: JSON.stringify(userInput),
-    ContentType: "application/x-text",
-  };
-
   try {
-    // Invoke the endpoint.
-    const command = new InvokeEndpointCommand(params);
-    const response = await sageMakerClient.send(command);
-    
+    const response = await axios.post(
+      apiGatewayEndpoint,
+      { "data": JSON.stringify(userInput) }
+    );
     // Decode the body of the response.
-    const bodyJson = new TextDecoder().decode(response.Body);
-    const responseBody = await JSON.parse(bodyJson);
-    
-    // Speak the generated text.
+    const responseBody = JSON.parse(response.data.body);
     const generatedText = responseBody.generated_text;
-    
+    console.log(generatedText);
     //dont trim if it is complete sentence
     const speech = trimResponse ? generatedText.split(";")[0] : generatedText;
     
-
-    console.log(speech);
+    // Speak the generated text.
     await host.TextToSpeechFeature.play(typeOfInputRequest);
     await host.TextToSpeechFeature.play(speech);
     const v2="What do you want to do next";
