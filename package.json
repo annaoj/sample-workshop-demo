@@ -19,7 +19,7 @@
     "@amazon-sumerian-hosts/babylon": "^2.0.4",
     "@aws-sdk/client-cognito-identity": "^3.282.0",
     "@aws-sdk/client-sagemaker-runtime": "^3.282.0",
-    "@aws-sdk/credential-provider-cognito-identity": "^3.282.0",
+    "@aws-sdk/credential-provider-cognito-identity": "^3.298.0",
     "@babylonjs/core": "^4.2.1",
     "@babylonjs/loaders": "^4.2.1",
     "@babylonjs/materials": "^4.2.1",
